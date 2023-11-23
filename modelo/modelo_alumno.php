@@ -127,6 +127,24 @@ $sql = "SELECT practica1, practica2, practica3, practica4, trabajo1, trabajo2, t
       }
 }
 
+function list_notas_course($curso,$alum){
+  $sql = "SELECT practica1, practica2, practica3, practica4, trabajo1, trabajo2, trabajo3, trabajo4, parcial1, parcial2, parcial3, parcial4, exsamen1, exsamen2, nonbrecurso,alumnonombre,apellidop  FROM notas 
+  
+  inner join curso  on curso.idcurso = notas.curso
+  inner join alumno  on alumno.idalumno = notas.alumnoid
+  where alumnoid='$alum' and curso='$curso' ";
+  $result = $this->conexion->conexion->query($sql);
+  if ($result) {
+    $arreglo = array();
+    while ($row = $result->fetch_assoc()) {
+      $arreglo[] = $row;
+    }
+    return $arreglo;
+  } else {
+   return $arreglo;
+ }
+}
+
 function listar_aulas_grado($idgrado){
 $sql  = "select idaula, nombreaula, piso, numero, aforro, seccion from grado
             inner join  aula on aula.idaula = grado.aula_id

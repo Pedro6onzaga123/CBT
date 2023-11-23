@@ -77,112 +77,76 @@ $('#table_cursos').on('click', '.vernotas', function() {
 
 })
 
-/*
-var table_notas;
-function Listar_Notas(idcurso){
-	var idalumo  =$("#textId").val();
-	//alert('curso '+idcurso+' alumno'+idalumo);
 
-	 table_notas = $("#table_notascurso").DataTable({
-        "ordering": false,
-        "bLengthChange": false,
-        "searching": {
-            "regex": false
-        },
-        "responsive": true,
-        dom: 'Bfrtilp',
-        buttons:[ 
-      
-      {
-        extend:    'pdfHtml5',
-        text:      '<i class="fa fa-download"></i> ',
-        titleAttr: 'Exportar a PDF',
-        className: 'btn btn-danger',
-        style:'background-color:red'
+function toggleIcon() {
+  var icono = document.getElementById("icono");
+  icono.classList.remove("fa-print"); // Elimina la clase actual si existe
+  icono.classList.add("fa-refresh"); // Agrega la nueva clase
+}
+function toggleIcon1() {
+  var icono1 = document.getElementById("icono");
+  icono1.classList.remove("fa-refresh"); // Elimina la clase actual si existe
+  icono1.classList.add("fa-print"); // Agrega la nueva clase
+}
+
+function printNotas(btnRegister){
+var notas = notaFilter;
+  btnRegister.disabled = true;
+    toggleIcon();
+     filtrarRegistrosPorFecha(notas,btnRegister);
+}
+
+function filtrarRegistrosPorFecha(notas,btnRegister) {
+  try {
+    if(notas.length==0){
+       btnRegister.disabled = false;
+       toggleIcon1();
+      return;
+    } 
+   
+    fetch('../controlador/print/Controller-print-notas-individual-pdf.php', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json', // Ajusta el tipo de contenido según tus necesidades
       },
-      {
-        "extend":    'print',
-        "text":      '<i class="fa fa-print"></i> ',
-        "titleAttr": 'Imprimir',
-        "className": 'btn btn-info'
-      },
-    ],
-        "lengthMenu": [
-            [10, 25, 50, 100, -1],
-            [10, 25, 50, 100, "All"]
-        ],
-        "pageLength": 10,
-        "destroy": true,
-        "async": false,
-        "processing": true, 
-        "ajax": {
-            "url": "../controlador/alumno/controlador_listar_NotasCur.php",
-            type: 'POST',
-            data:{idcurso:idcurso,idalumo:idalumo}  
-        },
-        "columns":[{ 
-            "data": "practica1" 
-        }, {
-            "data": "practica2"
-        }, 
-        {
-            "data": "practica3"
-        }, 
-        {
-            "data": "practica4"
-        }, 
-        {
-            "data": "trabajo1"
-        }, 
-        {
-            "data": "trabajo2"
-        }, 
-        {
-            "data": "trabajo3"
-        }, 
-        {
-            "data": "trabajo4"
-        }, 
-        {
-            "data": "parcial1"
-        }, 
-        {
-            "data": "parcial2"
-        }, 
-        {
-            "data": "parcial3"
-        }, 
-        {
-            "data": "parcial4"
-        }, 
-        {
-            "data": "exsamen1"
-        }, 
-        {
-            "data": "exsamen1"
-        }, 
-         
-         ],
-        "language": idioma_espanol,
-        select: true
-    });
-    document.getElementById("table_notascurso_filter").style.display = "none";
-    $('input.global_filter').on('keyup click', function() {
-        filterGlobal();
-    });
-    $('input.column_filter').on('keyup click', function() {
-        filterColumn($(this).parents('tr').attr('data-column'));
-    });
+    body: JSON.stringify(notas), // Convierte el objeto a formato JSON
+  })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`Error en la solicitud: ${response.status} ${response.statusText}`);
+      }
+       btnRegister.disabled = false;
+       toggleIcon1();
+
+      return response.blob();
+    })
+    .then(blob => {
+      const pdfData = URL.createObjectURL(blob);
+     const nuevaVentana = window.open(pdfData, '_blank');
+
+      if (!nuevaVentana) {
+         Swal.fire("Mensaje de error",'No se pudo abrir la nueva ventana.', "error");
+      }
+    })
+    .catch(error => console.error('Error al generar o obtener el PDF:', error));
+  } catch (error) {
+    Swal.fire("Mensaje de error",'Error en la función filtrarRegistrosPorFecha:'+error, "error");
+  }
+
+  
+}
 
 
-}*/
+
+
+var notaFilter;
 
 function Listar_Notas(idcurso){
     var idalumo  =$("#textId").val();
     //alert('curso '+idcurso+' alumno'+idalumo);
 
      $.ajax({
-           "url": "../controlador/alumno/controlador_listar_NotasCur.php",
+           "url": "../controlador/alumno/Controller_notas_curso_alumno.php",
              type: 'POST',
              data:{
                 idcurso:idcurso,
@@ -192,6 +156,7 @@ function Listar_Notas(idcurso){
 
               
         var datos = JSON.parse(resp);
+         notaFilter  = datos;
         
         if ((datos.length == 0)) {
 
@@ -207,7 +172,7 @@ function Listar_Notas(idcurso){
               var ex1 =0;
               var ex2 =0,pondfi=0,acum1=0,acum2=0,acum3=0;
         var template = '';
-        datos["data"].forEach(tarea => {
+        datos.forEach(tarea => {
             template += `
                    <tr>
                    <td>${tarea.practica1}</td>
